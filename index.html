@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Daily Meal Counter</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 94%;
+      max-width: 1000px;
+      margin: 30px auto;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: white;
+      padding: 28px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, .2);
+    }
+
+    .header h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      opacity: .9;
+    }
+
+    /* Card */
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, .06);
+    }
+
+    .card h2 {
+      margin-bottom: 18px;
+      font-size: 20px;
+    }
+
+    /* Date */
+    .date-section {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .date-section label {
+      font-weight: bold;
+    }
+
+    input {
+      border: 1px solid #cbd5e1;
+      padding: 12px 14px;
+      border-radius: 9px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+    }
+
+    /* Meal */
+    .meal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .meal-box {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: .2s;
+    }
+
+    .meal-box:hover {
+      border-color: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    .meal-icon {
+      font-size: 38px;
+      margin-bottom: 8px;
+    }
+
+    .meal-box h3 {
+      margin-bottom: 15px;
+    }
+
+    .counter {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .counter button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: #2563eb;
+      color: white;
+      font-size: 23px;
+      cursor: pointer;
+    }
+
+    .counter button:hover {
+      background: #1d4ed8;
+    }
+
+    .count {
+      font-size: 25px;
+      font-weight: bold;
+      min-width: 35px;
+    }
+
+    /* Summary */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    .summary-box {
+      padding: 20px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border-left: 5px solid #2563eb;
+    }
+
+    .summary-box h3 {
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .summary-box p {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    /* Rate */
+    .rate-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .rate-area input {
+      width: 180px;
+    }
+
+    /* Button */
+    .btn {
+      border: none;
+      padding: 11px 18px;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      background: #1d4ed8;
+    }
+
+    .danger {
+      background: #dc2626;
+    }
+
+    .danger:hover {
+      background: #b91c1c;
+    }
+
+    /* History */
+    .history {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 650px;
+    }
+
+    th,
+    td {
+      padding: 14px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #475569;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 25px;
+      color: #94a3b8;
+    }
+
+    /* Notification */
+    .saved {
+      color: #16a34a;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .meal-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>🍽️ Daily Meal Counter</h1>
+      <p>Track your daily meals easily</p>
+    </div>
+
+
+    <!-- Date -->
+    <div class="card">
+
+      <h2>📅 Select Date</h2>
+
+      <div class="date-section">
+        <label for="date">Date:</label>
+
+        <input
+          type="date"
+          id="date"
+          onchange="loadDate()"
+        >
+      </div>
+
+    </div>
+
+
+    <!-- Daily Meal -->
+    <div class="card">
+
+      <h2>🍴 Today's Meal</h2>
+
+      <div class="meal-grid">
+
+        <!-- Breakfast -->
+        <div class="meal-box">
+
+          <div class="meal-icon">🍳</div>
+
+          <h3>Breakfast</h3>
+
+          <div class="counter">
+
+            <button onclick="changeMeal('breakfast', -1)">
+              −
+            </button>
+
+            <span
+              class="count"
+              id="breakfast"
+            >0</span>
+
+            <button onclick="changeMeal('breakfast', 1)">
+              +
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Lunch -->
+        <div class="meal-box">
+
+          <div class="meal-icon">🍛</div>
+
+          <h3>Lunch</h3>
+
+          <div class="counter">
+
+            <button onclick="changeMeal('lunch', -1)">
+              −
+            </button>
+
+            <span
+              class="count"
+              id="lunch"
+            >0</span>
+
+            <button onclick="changeMeal('lunch', 1)">
+              +
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Dinner -->
+        <div class="meal-box">
+
+          <div class="meal-icon">🌙</div>
+
+          <h3>Dinner</h3>
+
+          <div class="counter">
+
+            <button onclick="changeMeal('dinner', -1)">
+              −
+            </button>
+
+            <span
+              class="count"
+              id="dinner"
+            >0</span>
+
+            <button onclick="changeMeal('dinner', 1)">
+              +
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        class="saved"
+        id="savedMessage"
+      >
+        ✓ Automatically saved
+      </div>
+
+    </div>
+
+
+    <!-- Today's Summary -->
+    <div class="card">
+
+      <h2>📊 Summary</h2>
+
+      <div class="summary">
+
+        <div class="summary-box">
+          <h3>Today's Meals</h3>
+          <p id="todayTotal">0</p>
+        </div>
+
+        <div class="summary-box">
+          <h3>Meal Rate</h3>
+          <p>৳<span id="rateDisplay">50</span></p>
+        </div>
+
+        <div class="summary-box">
+          <h3>Today's Cost</h3>
+          <p>৳<span id="todayCost">0</span></p>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Meal Rate -->
+    <div class="card">
+
+      <h2>💰 Meal Rate</h2>
+
+      <div class="rate-area">
+
+        <input
+          type="number"
+          id="mealRate"
+          min="0"
+          placeholder="Meal rate"
+        >
+
+        <span>৳ per meal</span>
+
+        <button
+          class="btn"
+          onclick="saveRate()"
+        >
+          Save Rate
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- Overall Summary -->
+    <div class="card">
+
+      <h2>📈 Overall Summary</h2>
+
+      <div class="summary">
+
+        <div class="summary-box">
+          <h3>Total Meals</h3>
+          <p id="allMeals">0</p>
+        </div>
+
+        <div class="summary-box">
+          <h3>Total Days</h3>
+          <p id="totalDays">0</p>
+        </div>
+
+        <div class="summary-box">
+          <h3>Total Cost</h3>
+          <p>৳<span id="allCost">0</span></p>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- History -->
+    <div class="card">
+
+      <h2>📋 Meal History</h2>
+
+      <div class="history">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Breakfast</th>
+              <th>Lunch</th>
+              <th>Dinner</th>
+              <th>Total</th>
+              <th>Cost</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+
+          <tbody id="historyTable"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    /*
+      ============================
+      DATA
+      ============================
+    */
+
+    let mealData =
+      JSON.parse(
+        localStorage.getItem("dailyMealData")
+      ) || {};
+
+    let mealRate =
+      Number(
+        localStorage.getItem("mealRate")
+      ) || 50;
+
+
+    /*
+      ============================
+      DATE
+      ============================
+    */
+
+    const dateInput =
+      document.getElementById("date");
+
+
+    function getToday() {
+
+      const now = new Date();
+
+      const year = now.getFullYear();
+
+      const month =
+        String(now.getMonth() + 1)
+          .padStart(2, "0");
+
+      const day =
+        String(now.getDate())
+          .padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+
+    /*
+      ============================
+      LOAD DATE
+      ============================
+    */
+
+    function loadDate() {
+
+      const date = dateInput.value;
+
+      if (!date) return;
+
+
+      if (!mealData[date]) {
+
+        mealData[date] = {
+          breakfast: 0,
+          lunch: 0,
+          dinner: 0
+        };
+
+      }
+
+
+      updateUI();
+
+      saveData();
+    }
+
+
+    /*
+      ============================
+      CHANGE MEAL
+      ============================
+    */
+
+    function changeMeal(type, amount) {
+
+      const date = dateInput.value;
+
+      if (!date) {
+
+        alert("Please select a date first!");
+
+        return;
+      }
+
+
+      if (!mealData[date]) {
+
+        mealData[date] = {
+          breakfast: 0,
+          lunch: 0,
+          dinner: 0
+        };
+
+      }
+
+
+      mealData[date][type] += amount;
+
+
+      // Don't allow negative
+      if (mealData[date][type] < 0) {
+
+        mealData[date][type] = 0;
+
+      }
+
+
+      saveData();
+
+      updateUI();
+
+      showSaved();
+    }
+
+
+    /*
+      ============================
+      UPDATE UI
+      ============================
+    */
+
+    function updateUI() {
+
+      const date = dateInput.value;
+
+      const data =
+        mealData[date] || {
+          breakfast: 0,
+          lunch: 0,
+          dinner: 0
+        };
+
+
+      document.getElementById("breakfast")
+        .textContent = data.breakfast;
+
+      document.getElementById("lunch")
+        .textContent = data.lunch;
+
+      document.getElementById("dinner")
+        .textContent = data.dinner;
+
+
+      const total =
+        data.breakfast +
+        data.lunch +
+        data.dinner;
+
+
+      document.getElementById("todayTotal")
+        .textContent = total;
+
+
+      document.getElementById("todayCost")
+        .textContent =
+        total * mealRate;
+
+
+      document.getElementById("rateDisplay")
+        .textContent = mealRate;
+
+
+      document.getElementById("mealRate")
+        .value = mealRate;
+
+
+      updateOverall();
+
+      renderHistory();
+    }
+
+
+    /*
+      ============================
+      OVERALL SUMMARY
+      ============================
+    */
+
+    function updateOverall() {
+
+      let totalMeals = 0;
+
+      let totalDays = 0;
+
+
+      Object.values(mealData)
+        .forEach(data => {
+
+          const total =
+            data.breakfast +
+            data.lunch +
+            data.dinner;
+
+
+          if (total > 0) {
+
+            totalDays++;
+
+          }
+
+
+          totalMeals += total;
+
+        });
+
+
+      document.getElementById("allMeals")
+        .textContent = totalMeals;
+
+
+      document.getElementById("totalDays")
+        .textContent = totalDays;
+
+
+      document.getElementById("allCost")
+        .textContent =
+        totalMeals * mealRate;
+
+    }
+
+
+    /*
+      ============================
+      SAVE DATA
+      ============================
+    */
+
+    function saveData() {
+
+      localStorage.setItem(
+        "dailyMealData",
+        JSON.stringify(mealData)
+      );
+
+      localStorage.setItem(
+        "mealRate",
+        mealRate
+      );
+
+    }
+
+
+    /*
+      ============================
+      SAVE RATE
+      ============================
+    */
+
+    function saveRate() {
+
+      const value =
+        Number(
+          document.getElementById("mealRate").value
+        );
+
+
+      if (value < 0 || isNaN(value)) {
+
+        alert("Please enter a valid rate!");
+
+        return;
+
+      }
+
+
+      mealRate = value;
+
+      saveData();
+
+      updateUI();
+
+      showSaved();
+
+    }
+
+
+    /*
+      ============================
+      SAVED MESSAGE
+      ============================
+    */
+
+    function showSaved() {
+
+      const message =
+        document.getElementById("savedMessage");
+
+
+      message.style.display = "block";
+
+
+      setTimeout(() => {
+
+        message.style.display = "none";
+
+      }, 1500);
+
+    }
+
+
+    /*
+      ============================
+      DELETE DATE
+      ============================
+    */
+
+    function deleteDate(date) {
+
+      const confirmDelete =
+        confirm(
+          `Delete meal data for ${date}?`
+        );
+
+
+      if (!confirmDelete) return;
+
+
+      delete mealData[date];
+
+
+      saveData();
+
+
+      if (date === dateInput.value) {
+
+        loadDate();
+
+      }
+
+
+      updateUI();
+
+    }
+
+
+    /*
+      ============================
+      HISTORY
+      ============================
+    */
+
+    function renderHistory() {
+
+      const table =
+        document.getElementById("historyTable");
+
+
+      table.innerHTML = "";
+
+
+      const dates =
+        Object.keys(mealData)
+          .sort()
+          .reverse();
+
+
+      if (dates.length === 0) {
+
+        table.innerHTML = `
+          <tr>
+            <td
+              colspan="7"
+              class="empty"
+            >
+              No meal history yet.
+            </td>
+          </tr>
+        `;
+
+        return;
+
+      }
+
+
+      dates.forEach(date => {
+
+        const data = mealData[date];
+
+
+        const total =
+          data.breakfast +
+          data.lunch +
+          data.dinner;
+
+
+        const cost =
+          total * mealRate;
+
+
+        const row =
+          document.createElement("tr");
+
+
+        row.innerHTML = `
+
+          <td>
+            ${formatDate(date)}
+          </td>
+
+          <td>
+            ${data.breakfast}
+          </td>
+
+          <td>
+            ${data.lunch}
+          </td>
+
+          <td>
+            ${data.dinner}
+          </td>
+
+          <td>
+            <strong>${total}</strong>
+          </td>
+
+          <td>
+            ৳${cost}
+          </td>
+
+          <td>
+
+            <button
+              class="btn danger"
+              onclick="deleteDate('${date}')"
+            >
+              Delete
+            </button>
+
+          </td>
+
+        `;
+
+
+        table.appendChild(row);
+
+      });
+
+    }
+
+
+    /*
+      ============================
+      FORMAT DATE
+      ============================
+    */
+
+    function formatDate(date) {
+
+      const parts =
+        date.split("-");
+
+
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+
+    }
+
+
+    /*
+      ============================
+      INITIALIZE
+      ============================
+    */
+
+    dateInput.value = getToday();
+
+    loadDate();
+
+  </script>
+
+</body>
+</html>
+
+
